@@ -208,20 +208,13 @@ extension DIBuilder {
     flags: [String] = [],
     runtimeVersion: Int = 0,
     splitDWARFPath: String = "",
-    identity: String = ""
+    identity: String = "",
+		sysRoot: Int8 = 0
   ) -> CompileUnitMetadata {
     let allFlags = flags.joined(separator: " ")
-    guard let cu = LLVMDIBuilderCreateCompileUnit(
-      self.llvm, language.llvm, file.llvm, identity, identity.count,
-      optimized.llvm,
-      allFlags, allFlags.count,
-      UInt32(runtimeVersion),
-      splitDWARFPath, splitDWARFPath.count,
-      kind.llvm,
-      /*DWOId*/0,
-      splitDebugInlining.llvm,
-      debugInfoForProfiling.llvm
-    ) else {
+		let unsafeP = UnsafePointer<Int8>(bitPattern: 0)
+		guard let cu = LLVMDIBuilderCreateCompileUnit(self.llvm, language.llvm, file.llvm, identity, identity.count, optimized.llvm, allFlags, allFlags.count, UInt32(runtimeVersion), splitDWARFPath, splitDWARFPath.count, kind.llvm, 0, splitDebugInlining.llvm, debugInfoForProfiling.llvm, unsafeP, 0, unsafeP, 0)
+		else {
       fatalError()
     }
     return CompileUnitMetadata(llvm: cu)
@@ -868,7 +861,7 @@ extension DIBuilder {
   ) -> DIType {
     guard let ty = LLVMDIBuilderCreateTypedef(
       self.llvm, type.asMetadata(), name, name.count,
-      file.asMetadata(), UInt32(line), scope.asMetadata())
+						file.asMetadata(), UInt32(line), scope.asMetadata(), UInt32(0))
     else {
       fatalError("Failed to allocate metadata")
     }
